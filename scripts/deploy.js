@@ -4,6 +4,7 @@
 // When running the script with `npx hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
 const hre = require("hardhat");
+require('dotenv').config()
 
 async function main() {
   // Hardhat always runs the compile task when running scripts with its command
@@ -17,7 +18,7 @@ async function main() {
   const TTT = await hre.ethers.getContractFactory("TTT");
   const TTT_ICO = await hre.ethers.getContractFactory("TTT_ICO");
 
-  const ttt = await TTT.deploy(100_000_000);
+  const ttt = await TTT.deploy(process.env.INITIAL_SUPPLY);
   const ttt_ico = await TTT_ICO.deploy("", Math.floor(Date.now() / 1000));
 
   await ttt.deployed();

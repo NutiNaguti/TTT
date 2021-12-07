@@ -34,8 +34,11 @@ contract TTT_ICO {
 
     constructor(
         uint phase1StartTime,
-        address payable walletAddress
+        address payable walletAddress,
+        address tokenRewardAddress
     ) {
+        require(tokenRewardAddress != address(0));
+        require(walletAddress != address(0));
         wallet = walletAddress;
 
         phase1Opening = phase1StartTime;
