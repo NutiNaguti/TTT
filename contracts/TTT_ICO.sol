@@ -1,9 +1,12 @@
 pragma solidity >= 0.8.0 < 0.9.0;
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "./TTT.sol";
 
-contract TTT_ICO {
+import "hardhat/console.sol";
+
+contract TTT_ICO is Ownable {
     TTT public tokenReward;
 
     using SafeMath for uint256;
@@ -29,7 +32,20 @@ contract TTT_ICO {
     uint public phase3Closing;
 
     address payable wallet;
+    
+    mapping (address => bool) public whitelist;
 
+    modifier whenIcoInProgress() {
+        Phase currentPhase = getCuurentPhase();
+        if (currentPhase != Phase.NotRunning && 
+            currentPhase != Phase.Ended) { 
+            
+            require(whitelist[msg.sender] == true, "While ICO running only werified users can transfer");
+        }
+        _;
+    }
+
+    event AddedToWhitelist(bool, address);
     event TokenPurchased(address, uint, uint);
 
     constructor(
@@ -39,6 +55,8 @@ contract TTT_ICO {
     ) {
         require(tokenRewardAddress != address(0));
         require(walletAddress != address(0));
+
+        tokenReward = TTT(tokenRewardAddress);
         wallet = walletAddress;
 
         phase1Opening = phase1StartTime;
@@ -51,11 +69,11 @@ contract TTT_ICO {
         phase3Closing = phase3Opening.add(14 * 24 * 60 * 60);
     }
 
-    receive() external payable {
+    receive() external payable whenIcoInProgress {
         Phase currentPhase = getCuurentPhase();
-        require(currentPhase != Phase.NotRunning ||
-            currentPhase != Phase.Ended, "ICO is not running");
-
+        require(currentPhase != Phase.NotRunning || currentPhase != Phase.Ended, "ICO is not running");
+        require(whitelist[msg.sender] == true, "While ICO running only werified users can transfer");
+        
         uint tttAmount = 0;
         uint weiAmount = msg.value;
 
@@ -67,7 +85,7 @@ contract TTT_ICO {
             tttAmount = weiAmount.mul(Phase3Rate);
         }
         
-        tokenReward.transfer(msg.sender, tttAmount);
+        tokenReward.transferFromICO(msg.sender, tttAmount);
         wallet.transfer(msg.value);
 
         emit TokenPurchased(msg.sender, weiAmount, tttAmount);
@@ -88,11 +106,35 @@ contract TTT_ICO {
         return currentPhase;
     }
 
+    function addToWhitelist(address icoParticipant) public onlyOwner {
+        whitelist[icoParticipant] = true;
+        emit AddedToWhitelist(true, icoParticipant);
+    }
+
+    function inWhitelist(address user) public view returns(bool){
+        return whitelist[user];
+    }
+
+
     function getIcoStartTime() public view returns(uint) {
         return phase1Opening;
     }
 
     function getIcoEndTime() public view returns(uint) {
         return phase3Closing;
+    }
+
+    function getEnumAsString(Phase phase) private pure returns(string memory) {
+        if (phase == Phase.NotRunning) {
+            return "Not running";
+        } else if (phase == Phase.Ended) {
+            return "Ended";
+        } else if (phase == Phase.Phase1) {
+            return "Phase1";
+        } else if (phase == Phase.Phase2) {
+            return "Phase2";
+        } else {
+            return "Phase3";
+        }
     }
 }
