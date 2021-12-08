@@ -19,10 +19,7 @@ async function main() {
   const TTT_ICO = await hre.ethers.getContractFactory("TTT_ICO");
 
   const ttt = await TTT.deploy(process.env.INITIAL_SUPPLY);
-  const ttt_ico = await TTT_ICO.deploy("", Math.floor(Date.now() / 1000));
-
-  await ttt.deployed();
-  await ttt_ico.deployed();
+  const ttt_ico = await TTT_ICO.deploy(Math.floor(Date.now() / 1000), process.env.WALLET_ADDRESS, ttt.address);
 
   console.log("TTT deployed to:", ttt.address);
   console.log("TTT_ICO deployed to:", ttt_ico.address);

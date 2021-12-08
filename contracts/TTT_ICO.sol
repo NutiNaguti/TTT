@@ -115,7 +115,6 @@ contract TTT_ICO is Ownable {
         return whitelist[user];
     }
 
-
     function getIcoStartTime() public view returns(uint) {
         return phase1Opening;
     }
