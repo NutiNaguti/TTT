@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity >= 0.8.0 < 0.9.0;
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -71,9 +72,10 @@ contract TTT_ICO is Ownable {
 
     receive() external payable whenIcoInProgress {
         Phase currentPhase = getCuurentPhase();
-        require(currentPhase != Phase.NotRunning || currentPhase != Phase.Ended, "ICO is not running");
-        require(whitelist[msg.sender] == true, "While ICO running only werified users can transfer");
-        
+        require(currentPhase != Phase.NotRunning || currentPhase != Phase.Ended, "ICO not in progress");
+        require(whitelist[msg.sender] == true, "While ICO in progress only werified users can transfer");
+        require(msg.value != 0, "Insufficient funds");
+
         uint tttAmount = 0;
         uint weiAmount = msg.value;
 
@@ -85,7 +87,7 @@ contract TTT_ICO is Ownable {
             tttAmount = weiAmount.mul(Phase3Rate);
         }
         
-        tokenReward.transferFromICO(msg.sender, tttAmount);
+        tokenReward.transferFromIco(msg.sender, tttAmount);
         wallet.transfer(msg.value);
 
         emit TokenPurchased(msg.sender, weiAmount, tttAmount);
@@ -111,29 +113,11 @@ contract TTT_ICO is Ownable {
         emit AddedToWhitelist(true, icoParticipant);
     }
 
-    function inWhitelist(address user) public view returns(bool){
-        return whitelist[user];
-    }
-
     function getIcoStartTime() public view returns(uint) {
         return phase1Opening;
     }
 
     function getIcoEndTime() public view returns(uint) {
         return phase3Closing;
-    }
-
-    function getEnumAsString(Phase phase) private pure returns(string memory) {
-        if (phase == Phase.NotRunning) {
-            return "Not running";
-        } else if (phase == Phase.Ended) {
-            return "Ended";
-        } else if (phase == Phase.Phase1) {
-            return "Phase1";
-        } else if (phase == Phase.Phase2) {
-            return "Phase2";
-        } else {
-            return "Phase3";
-        }
     }
 }

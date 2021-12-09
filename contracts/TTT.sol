@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity >= 0.8.0 < 0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -15,6 +16,18 @@ contract TTT is ERC20, Ownable {
 
     uint initialSupply;
 
+    modifier whenIcoFinished {
+        require(msg.sender != icoAddress);
+        require(block.timestamp > icoEndTimeStamp, "Avalibale only after ICO");
+        _;
+    }
+
+    modifier whenIcoInProgress {
+        require(block.timestamp > icoStartTimestamp && block.timestamp <= icoEndTimeStamp, "Avalibale only during ICO");
+        require(ico.whitelist(msg.sender) == true, "Only verified users can use transaction while ICO");
+        _;
+    }
+
     constructor(uint _initialSupply) ERC20("Test Task Token", "TTT") {
         initialSupply = _initialSupply;
     }
@@ -31,8 +44,28 @@ contract TTT is ERC20, Ownable {
         return true;
     }
 
-    function transferFromICO(address recipient, uint256 amount) public returns(bool) {
+    function transferFromIco(address recipient, uint amount) public returns(bool) {
         require(msg.sender == icoAddress);
         return super.transfer(recipient, amount);
+    }
+
+    function transferWhileIco(address recipient, uint amount) public whenIcoInProgress returns(bool) {
+        return super.transfer(recipient, amount);
+    }
+    
+    function transferFromWhileIco(address from, address to, uint amount) public whenIcoInProgress returns(bool) {
+        return super.transferFrom(from, to, amount);
+    }
+
+    function transfer(address recipient, uint amount) public whenIcoFinished override returns(bool) {
+        return super.transfer(recipient, amount);
+    }
+        
+    function transferFrom(address from, address to, uint amount) public whenIcoFinished override returns(bool) {
+        return super.transferFrom(from, to, amount);
+    }
+
+    function approve(address spender, uint amount) public whenIcoFinished override returns(bool) {
+        return super.approve(spender, amount);
     }
 }
