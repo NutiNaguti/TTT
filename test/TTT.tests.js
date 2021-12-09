@@ -85,17 +85,18 @@ describe("TTT contract main tests", function() {
         await catchRevert(ttt.connect(address1).transferFromWhileIco(owner.address, address2.address, 1));
     });
 
-    // it("Only verified users can use transferFrom while ICO in progress positive", async function() {
-    //     await ttt_ico.addToWhitelist(address1.address);
+    it("Only verified users can use transferFrom while ICO in progress positive", async function() {
+        await ttt_ico.addToWhitelist(address1.address);
         
-    //     const amount = BigNumber.from(ethers.utils.parseEther("1.5"));
-    //     await address2.sendTransaction({
-    //         to: ttt_ico.address,
-    //         value: amount
-    //     });
-    //     const tttBalance = await ttt.balanceOf(address1.address);
+        const amount = BigNumber.from(ethers.utils.parseEther("1.5"));
+        await address2.sendTransaction({
+            to: ttt_ico.address,
+            value: amount
+        });
+        const tttBalance = await ttt.balanceOf(address1.address);
 
-    // });
+        
+    });
 });
 
 describe("Additional tests for different time", function() {
