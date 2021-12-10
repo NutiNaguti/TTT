@@ -20,7 +20,8 @@ async function main() {
 
   const ttt = await TTT.deploy(process.env.INITIAL_SUPPLY);
   const ttt_ico = await TTT_ICO.deploy(Math.floor(Date.now() / 1000), process.env.WALLET_ADDRESS, ttt.address);
-
+  await ttt.setIcoConstract(ttt_ico.address);
+  
   console.log("TTT deployed to:", ttt.address);
   console.log("TTT_ICO deployed to:", ttt_ico.address);
 }
